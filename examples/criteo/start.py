@@ -14,8 +14,9 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument(
     '--preprocess',
-    type=bool,
-    default=False,
+    type=str,
+    default='no',
+    choices=['no', 'yes'],
     help='Should preprocess dataset')
 parser.add_argument(
     '--input-dir',
@@ -87,7 +88,7 @@ replaces = [
     ["INPUT_DIR = '/raid/data/criteo/input/'", "INPUT_DIR = '" + args.input_dir + "'"],
     ["OUTPUT_DIR = '/raid/data/criteo/'", "OUTPUT_DIR = '" + args.output_dir + "'"]
 ]
-if args.preprocess:
+if args.preprocess=='yes':
     _run_notebook('/tmp/', 'benchmark-preprocess.ipynb', lambda line: replace_lines(line, replaces))
 
 replaces.append(
