@@ -1,0 +1,40 @@
+# (1) Use this file for docker runtime configurations that are common to both
+# development and deployment.
+
+# `version : '2.3'` lets us use the `runtime=nvidia` configuration so that our
+# containers can interact with the GPU(s).
+version: '2.3'
+
+volumes:
+  models:
+
+services:
+  triton:
+    command: "/bin/bash -c 'tritonserver --model-repository=/models/ --model-control-mode=explicit'"
+    image: nvcr.io/nvidia/merlin/merlin-inference:0.5.2
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    runtime: nvidia
+    shm_size: "1g"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    ports:
+      - 8000:8000
+      - 8001:8001
+      - 8002:8002
+    volumes:
+      - models:/models
+
+  lab:
+    runtime: nvidia
+    image: nvcr.io/nvidia/merlin/merlin-tensorflow-training:0.5.2
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+      - DATA_URL=${DATA_URL}
+    command: "/bin/bash -c 'cd /NVTabular_git/bench/inference/ && python gen_data.py && python nvt_etl.py && python run_tensorflow.py'"
+    volumes:
+      - models:/models
+      - ${path}:/NVTabular_git
+    links:
+      - triton
